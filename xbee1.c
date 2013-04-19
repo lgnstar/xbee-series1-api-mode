@@ -35,12 +35,11 @@
 #include "xbee1.h"
 
 //
-// Implement Xbee Series 1 API mode 1
+// Xbee Series 1 API mode 1 implementation
 //
 
-// TODO calculate checksum byte
-// for API mode
-void calculate_checksum(struct tx_request *tx) {
+// Calculate checksum byte for API mode
+unsigned char calculate_checksum(tx_request16 tx) {
     // From the Xbee datasheet ...
     //
     // To test data integrity, a checksum is calculated and verified on non-escaped data.
@@ -48,53 +47,52 @@ void calculate_checksum(struct tx_request *tx) {
     // To calculate: Not including frame delimiters and length, add all bytes keeping only the lowest 8
     // bits of the result and subtract from 0xFF.
 
-    //unsigned char sum = 0;
-    //for (unsigned int i = 0; i != sizeof(data); ++i) {
-    //    sum += data[i];
-    // }
-    // START
-    // TODO: get lowest 8 bits of sum
+    unsigned long sum = tx.api_id + tx.frame_id + tx.dest_addr + tx.tx_opts;
+    for (unsigned int i = 0; i != 3; ++i) {
+        sum += tx.rf_data[i];
+     }
 
-    // unsigned char lower8 = 0;
-    // TODO: subtract lowest 8 bit of sum from 0xFF
-    // return 0xff - lower8;
+    // Get lowest 8 bits of sum
+    unsigned char lsb = sum & 0xFF;
+
+    // subtract lowest 8 bit of sum from 0xFF
+    return 0xFF - lsb;
 }
 
+tx_request16 create_tx_request16(unsigned char data[], unsigned int address) {
+    // TODO: data array should only have three elements. How do a check for this?
+    const unsigned char PAD_SIZE = 5; /// always add 5 to data to get length
+    tx_request16 tx;
+    tx.api_id      = 0x01;
+    tx.start_delim = 0x7E;
+    tx.frame_id    = 0x00;
+    tx.tx_opts     = 0x01;
+    tx.rf_data     = data;
+    tx.dest_addr   = address;
+    tx.length      = PAD_SIZE + 3;
+    tx.checksum    = calculate_checksum(tx);
+    return tx;
+}
 
-// TODO verify checksum byte
-// for API mode
-// void verify_checksum() {
+// verify checksum byte for API mode
+unsigned char verify_checksum(tx_request16 tx) {
     // From the Xbee datasheet ...
     //
     // To test data integrity, a checksum is calculated and verified on non-escaped data.
     //
     // To verify: Add all bytes (include checksum, but not the delimiter and length). If the checksum is
     // correct, the sum will equal 0xFF.
-// }
+    unsigned long sum = tx.api_id + tx.frame_id + tx.dest_addr + tx.tx_opts + tx.checksum;
+    for (unsigned int i = 0; i != 3; ++i) {
+        sum += tx.rf_data[i];
+     }
 
-
-// TODO calculate length(MSB + LSB)
-// TODO figure out how to calculate the length (what is the length?)
-// void calculate_length() {
-// 
-// }
-
-
-// TODO: implement TX Request (64-bit address)
-//                       _____Frame_Data_____
-// start_delim  length   API_Identifier  Data  checksum
-// 0x7E         MSB LSB  0x00            XXX   1 byte
-
-// TODO: implement RX Packet (64-bit address)
-//                       _____Frame_Data_____
-// start_delim  length   API_Identifier  Data checksum
-// 0x7E         MSB LSB  0x80            XXX  1 byte
-
-struct tx_request create_tx_request(unsigned char data, unsigned long long address) {
-    struct tx_request t;
-    t.rf_data = data;
-    t.dest_addr = address;
-    calculate_checksum(t);
-    return t;
+     if (sum == 0xFF) {
+        // checksum valid
+        return 1;
+     } else {
+        // checksum invalid
+        return 0;
+     }
 }
 

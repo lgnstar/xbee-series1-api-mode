@@ -31,26 +31,21 @@
 #ifndef XBEE1_H
 #define XBEE1_H
 
-// TODO: implement TX Request (64-bit address)
-//                       _____Frame_Data_____
-// start_delim  length   API_Identifier  Data  checksum
-// 0x7E         MSB LSB  0x00            XXX   1 byte
-struct tx_request {
-    const unsigned char api_id = 0x00;
+typedef struct tx_request16 {
+    unsigned char api_id;        // 0x01 for TX
     unsigned char checksum;
-    unsigned char rf_data;    // actual data payload
-    const uint16_t length 12; // fixed length 12 to send one byte of data
-    const unsigned char start_delim = 0x7E;
+    uint16_t length;
+    unsigned char start_delim;   // always 0x7E
+    char frame_id;               // 0x00 to disable response frame
+    unsigned int dest_addr;      // 16 bit destination address
+    unsigned char tx_opts;       // 0x01 to disable ACK
+    unsigned char rf_data[3];    // data payload
+} tx_request;
 
-    const char frame_id 0x00;    // disable response frame
-    unsigned long long dest_addr;  // 64 bit destination address
-    tx_opts = 0x01; // disable ACK
-};
 
-void calculate_checksum(struct tx_request *tx);
-
-// temp hardcoded length
-// void calculate_length();
-struct tx_request create_tx_request(unsigned char data);
+unsigned char calculate_checksum(tx_request16 tx);
+tx_request16 create_tx_request16(unsigned char data, unsigned int address);
+unsigned char verify_checksum(tx_request16 tx);
 
 #endif
+

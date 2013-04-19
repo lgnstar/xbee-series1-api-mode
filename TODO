@@ -1,1 +1,20 @@
+Random Tasks
+------------
+* Try to use and compile this code with an actual project
+
+Fix Bugs
+--------
+???
+
+New Features
+------------
+* Implement TX Request (16-bit address)
+* Implement TX Request (64-bit address)
+                          _____Frame_Data_____
+    start_delim  length   API_Identifier  Data  checksum
+    0x7E         MSB LSB  0x00            XXX   1 byte
+* Implement RX Packet (64-bit address)
+                          _____Frame_Data_____
+    start_delim  length   API_Identifier  Data checksum
+    0x7E         MSB LSB  0x80            XXX  1 byte
 
