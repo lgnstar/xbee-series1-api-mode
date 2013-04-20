@@ -34,17 +34,17 @@
 typedef struct tx_request16 {
     unsigned char api_id;        // 0x01 for TX
     unsigned char checksum;
-    uint16_t length;
+    unsigned int length;
     unsigned char start_delim;   // always 0x7E
     char frame_id;               // 0x00 to disable response frame
     unsigned int dest_addr;      // 16 bit destination address
     unsigned char tx_opts;       // 0x01 to disable ACK
     unsigned char rf_data[3];    // data payload
-} tx_request;
+} tx_request16;
 
 
 unsigned char calculate_checksum(tx_request16 tx);
-tx_request16 create_tx_request16(unsigned char data, unsigned int address);
+tx_request16 create_tx_request16(unsigned char data[], unsigned int address);
 unsigned char verify_checksum(tx_request16 tx);
 
 #endif

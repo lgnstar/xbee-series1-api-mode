@@ -67,8 +67,13 @@ tx_request16 create_tx_request16(unsigned char data[], unsigned int address) {
     tx.start_delim = 0x7E;
     tx.frame_id    = 0x00;
     tx.tx_opts     = 0x01;
-    tx.rf_data     = data;
     tx.dest_addr   = address;
+    
+    // TODO; is there a better way to do this?
+    for (unsigned int i=0; i != 3; i++) {
+        tx.rf_data[i] = data[i];
+    }
+
     tx.length      = PAD_SIZE + 3;
     tx.checksum    = calculate_checksum(tx);
     return tx;
