@@ -61,7 +61,7 @@ unsigned char calculate_checksum(tx_request16 tx) {
 
 tx_request16 create_tx_request16(unsigned char data[], unsigned int address) {
     // TODO: data array should only have three elements. How do a check for this?
-    const unsigned char PAD_SIZE = 5; /// always add 5 to data to get length
+    const unsigned int PAD_SIZE = 5; /// always add 5 to data to get length
     tx_request16 tx;
     tx.api_id      = 0x01;
     tx.start_delim = 0x7E;
@@ -74,8 +74,10 @@ tx_request16 create_tx_request16(unsigned char data[], unsigned int address) {
         tx.rf_data[i] = data[i];
     }
 
-    tx.length      = PAD_SIZE + 3;
-    tx.checksum    = calculate_checksum(tx);
+    tx.msb_length = (PAD_SIZE + 3) & 0xFF00;  // high byte
+    tx.lsb_length = (PAD_SIZE + 3) & 0x00FF;  // low byte
+
+    tx.checksum = calculate_checksum(tx);
     return tx;
 }
 

@@ -34,7 +34,8 @@
 typedef struct tx_request16 {
     unsigned char api_id;        // 0x01 for TX
     unsigned char checksum;
-    unsigned int length;
+    unsigned char msb_length;
+    unsigned char lsb_length;
     unsigned char start_delim;   // always 0x7E
     char frame_id;               // 0x00 to disable response frame
     unsigned int dest_addr;      // 16 bit destination address
