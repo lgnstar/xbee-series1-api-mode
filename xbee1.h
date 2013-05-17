@@ -38,7 +38,8 @@ typedef struct tx_request16 {
     unsigned char lsb_length;
     unsigned char start_delim;   // always 0x7E
     char frame_id;               // 0x00 to disable response frame
-    unsigned int dest_addr;      // 16 bit destination address
+    unsigned char msb_dest_addr; // MSB of 16 bit destination address  (first)
+    unsigned char lsb_dest_addr; // LSB of 16 bit destination address  (second)
     unsigned char tx_opts;       // 0x01 to disable ACK
     unsigned char rf_data[3];    // data payload
 } tx_request16;

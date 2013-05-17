@@ -47,27 +47,29 @@ unsigned char calculate_checksum(tx_request16 tx) {
     // To calculate: Not including frame delimiters and length, add all bytes keeping only the lowest 8
     // bits of the result and subtract from 0xFF.
 
-    unsigned long sum = tx.api_id + tx.frame_id + tx.dest_addr + tx.tx_opts;
+    unsigned long sum = tx.api_id + tx.frame_id + tx.msb_dest_addr + tx.lsb_dest_addr + tx.tx_opts;
     for (unsigned int i = 0; i != 3; ++i) {
         sum += tx.rf_data[i];
      }
 
     // Get lowest 8 bits of sum
-    unsigned char lsb = sum & 0xFF;
+    unsigned char lsb = sum & 0x000000FF;
 
     // subtract lowest 8 bit of sum from 0xFF
     return 0xFF - lsb;
+
 }
 
 tx_request16 create_tx_request16(unsigned char data[], unsigned int address) {
     // TODO: data array should only have three elements. How do a check for this?
     const unsigned int PAD_SIZE = 5; /// always add 5 to data to get length
     tx_request16 tx;
-    tx.api_id      = 0x01;
-    tx.start_delim = 0x7E;
-    tx.frame_id    = 0x00;
-    tx.tx_opts     = 0x01;
-    tx.dest_addr   = address;
+    tx.api_id        = 0x01;
+    tx.start_delim   = 0x7E;
+    tx.frame_id      = 0x00;
+    tx.tx_opts       = 0x01;
+    tx.msb_dest_addr = address & 0xFF00; // high byte
+    tx.lsb_dest_addr = address & 0x00FF; // low byte
     
     // TODO; is there a better way to do this?
     for (unsigned int i=0; i != 3; i++) {
@@ -89,7 +91,7 @@ unsigned char verify_checksum(tx_request16 tx) {
     //
     // To verify: Add all bytes (include checksum, but not the delimiter and length). If the checksum is
     // correct, the sum will equal 0xFF.
-    unsigned long sum = tx.api_id + tx.frame_id + tx.dest_addr + tx.tx_opts + tx.checksum;
+    unsigned long sum = tx.api_id + tx.frame_id + tx.msb_dest_addr + tx.lsb_dest_addr + tx.tx_opts + tx.checksum;
     for (unsigned int i = 0; i != 3; ++i) {
         sum += tx.rf_data[i];
      }
